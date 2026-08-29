@@ -1,9 +1,8 @@
 import os
+from dotenv import load_dotenv
 
-SCAN_INTERVAL = 60
+load_dotenv()
 
-GOOGLE_SHEET_NAME = "FNO_Advanced_Scanner"
+UPSTOX_ACCESS_TOKEN = os.getenv("UPSTOX_ACCESS_TOKEN")
 
-MARKET_START = "09:15"
-
-MARKET_END = "15:30"
+BASE_URL = "https://api.upstox.com/v2"
