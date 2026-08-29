@@ -1,13 +1,7 @@
-class UpstoxAuth:
+import os
 
-    def __init__(self):
-        self.access_token = None
+CLIENT_ID = os.getenv("UPSTOX_CLIENT_ID")
+CLIENT_SECRET = os.getenv("UPSTOX_CLIENT_SECRET")
+REDIRECT_URI = os.getenv("UPSTOX_REDIRECT_URI")
 
-    def login(self):
-        """
-        Generate or refresh Upstox token
-        """
-        pass
-
-    def get_token(self):
-        return self.access_token
+print("Auth module loaded")
