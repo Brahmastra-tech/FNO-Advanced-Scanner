@@ -68,3 +68,22 @@ class CandleBuilder:
             candle["volume"] = row["volume"] or candle["volume"]
 
             candle["turnover"] = row["turnover"] or candle["turnover"]
+    def get_1m(self, instrument_key):
+
+        return pd.DataFrame(self.completed[instrument_key])
+
+
+    def latest(self, instrument_key):
+
+        return self.current.get(instrument_key)
+
+
+    def latest_all(self):
+
+        rows = []
+
+        for candle in self.current.values():
+
+            rows.append(candle)
+
+        return pd.DataFrame(rows)
