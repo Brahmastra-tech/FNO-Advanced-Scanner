@@ -1,10 +1,26 @@
+import requests
+from settings import UPSTOX_ACCESS_TOKEN, BASE_URL
+
+
 class UpstoxAPI:
 
     def __init__(self):
-        print("Upstox API Ready")
+        self.headers = {
+            "Authorization": f"Bearer {UPSTOX_ACCESS_TOKEN}",
+            "Accept": "application/json"
+        }
 
-    def login(self):
-        print("Login Pending")
+    def get_quote(self, instrument_key):
 
-    def fetch_market_quote(self):
-        print("Market Quote Pending")
+        url = f"{BASE_URL}/market-quote/quotes"
+
+        response = requests.get(
+            url,
+            headers=self.headers,
+            params={
+                "instrument_key": instrument_key
+            },
+            timeout=30
+        )
+
+        return response.json()
