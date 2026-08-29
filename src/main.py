@@ -1,12 +1,4 @@
-from src.auth import UpstoxAuth
+from auth import *
+from settings import *
 
-def main():
-
-    auth = UpstoxAuth()
-
-    print("Project Started")
-
-    print("Authentication Module Loaded")
-
-if __name__ == "__main__":
-    main()
+print("FNO Advanced Scanner Started")
