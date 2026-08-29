@@ -1,10 +1,15 @@
 import requests
-from settings import UPSTOX_ACCESS_TOKEN, BASE_URL
+
+from src.settings import (
+    UPSTOX_ACCESS_TOKEN,
+    BASE_URL,
+)
 
 
 class UpstoxAPI:
 
     def __init__(self):
+
         self.headers = {
             "Authorization": f"Bearer {UPSTOX_ACCESS_TOKEN}",
             "Accept": "application/json"
