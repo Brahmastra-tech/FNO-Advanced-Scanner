@@ -1,7 +1,7 @@
-from settings import *
-from auth import *
+from upstox_api import UpstoxAPI
 
-print("=" * 50)
-print("FNO ADVANCED SCANNER")
-print("=" * 50)
-print("Project Started Successfully")
+api = UpstoxAPI()
+
+quote = api.get_quote("NSE_INDEX|Nifty 50")
+
+print(quote)
