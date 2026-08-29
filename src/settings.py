@@ -1,0 +1,9 @@
+import os
+
+SCAN_INTERVAL = 60
+
+GOOGLE_SHEET_NAME = "FNO_Advanced_Scanner"
+
+MARKET_START = "09:15"
+
+MARKET_END = "15:30"
