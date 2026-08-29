@@ -1,12 +1,9 @@
-upstox-python-sdk
 requests
 python-dotenv
+pyotp
+upstox-python-sdk
 gspread
 google-auth
 google-auth-oauthlib
-google-auth-httplib2
-pyotp
 pandas
 numpy
-loguru
-schedule
