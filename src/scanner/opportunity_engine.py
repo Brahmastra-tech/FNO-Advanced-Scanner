@@ -3,242 +3,103 @@ import pandas as pd
 
 class OpportunityEngine:
     """
-    Opportunity Detection Engine
-
-    Combines all analytics engines into
-    one Opportunity Score.
+    Converts scanner output into
+    ranked opportunities.
     """
 
     def __init__(self):
+        pass
 
-        self.weights = {
+    # ---------------------------------------------------
 
-            "rs": 20,
+    def classify(self, row):
 
-            "volume": 20,
+        score = row["total_score"]
 
-            "sector": 15,
+        decision = row["decision"]
 
-            "compression": 15,
+        confidence = row["confidence"]
 
-            "structure": 15,
+        if decision == "BREAKOUT":
 
-            "market": 15
+            return "A+"
 
-        }
+        if decision == "READY" and confidence >= 90:
 
-    def calculate(self, df, market_status="NEUTRAL"):
+            return "A"
 
-        market = df.copy()
+        if decision == "READY":
 
-        # -----------------------------
-        # Default Missing Values
-        # -----------------------------
+            return "B+"
 
-        defaults = {
+        if decision == "WATCH":
 
-            "rs_score": 0,
+            return "B"
 
-            "rvol": 1,
+        return "IGNORE"
 
-            "sector_strength": 0,
+    # ---------------------------------------------------
 
-            "compression_score": 0,
+    def priority(self, row):
 
-            "structure_score": 0
+        score = row["total_score"]
 
-        }
+        confidence = row["confidence"]
 
-        for col, value in defaults.items():
+        return round(
 
-            if col not in market.columns:
+            score * 0.60 +
 
-                market[col] = value
+            confidence * 0.40,
 
-            market[col] = market[col].fillna(value)
-
-        # -----------------------------
-        # Relative Strength
-        # -----------------------------
-
-        market["rs_points"] = (
-
-            market["rs_score"]
-
-            .clip(-5, 5)
-
-            + 5
-
-        ) * 2
-
-        # 0–20
-
-        # -----------------------------
-        # Volume
-        # -----------------------------
-
-        market["volume_points"] = (
-
-            market["rvol"]
-
-            .clip(0, 2)
-
-            / 2
-
-        ) * 20
-
-        # -----------------------------
-        # Sector
-        # -----------------------------
-
-        market["sector_points"] = (
-
-            market["sector_strength"]
-
-            .clip(-5, 5)
-
-            + 5
-
-        ) * 1.5
-
-        # -----------------------------
-        # Compression
-        # -----------------------------
-
-        market["compression_points"] = (
-
-            market["compression_score"]
-
-            / 100
-
-        ) * 15
-
-        # -----------------------------
-        # Structure
-        # -----------------------------
-
-        market["structure_points"] = (
-
-            market["structure_score"]
-
-            / 100
-
-        ) * 15
-
-        # -----------------------------
-        # Market Context
-        # -----------------------------
-
-        if market_status == "VERY BULLISH":
-
-            market_points = 15
-
-        elif market_status == "BULLISH":
-
-            market_points = 12
-
-        elif market_status == "NEUTRAL":
-
-            market_points = 8
-
-        elif market_status == "BEARISH":
-
-            market_points = 4
-
-        else:
-
-            market_points = 0
-
-        market["market_points"] = market_points
-
-        # -----------------------------
-        # Total Score
-        # -----------------------------
-
-        market["total_score"] = (
-
-            market["rs_points"]
-
-            +
-
-            market["volume_points"]
-
-            +
-
-            market["sector_points"]
-
-            +
-
-            market["compression_points"]
-
-            +
-
-            market["structure_points"]
-
-            +
-
-            market["market_points"]
-
-        ).round(2)
-
-        # -----------------------------
-        # Confidence
-        # -----------------------------
-
-        market["confidence"] = (
-
-            market["total_score"]
-
-        ).clip(0, 100)
-
-        # -----------------------------
-        # Stage
-        # -----------------------------
-
-        stage = []
-
-        for _, row in market.iterrows():
-
-            score = row["total_score"]
-
-            if score >= 90:
-
-                stage.append("BREAKOUT")
-
-            elif score >= 80:
-
-                stage.append("READY")
-
-            elif score >= 65:
-
-                stage.append("WATCH")
-
-            else:
-
-                stage.append("IGNORE")
-
-        market["stage"] = stage
-
-        return market
-
-    def opportunities(self, df):
-
-        return (
-
-            df
-
-            [
-
-                df["stage"] != "IGNORE"
-
-            ]
-
-            .sort_values(
-
-                by="total_score",
-
-                ascending=False
-
-            )
+            2
 
         )
+
+    # ---------------------------------------------------
+
+    def process(self, dataframe):
+
+        df = dataframe.copy()
+
+        df["opportunity"] = df.apply(
+
+            self.classify,
+
+            axis=1
+
+        )
+
+        df["priority_score"] = df.apply(
+
+            self.priority,
+
+            axis=1
+
+        )
+
+        df = df.sort_values(
+
+            by=[
+
+                "priority_score",
+
+                "total_score"
+
+            ],
+
+            ascending=False
+
+        )
+
+        df.reset_index(
+
+            drop=True,
+
+            inplace=True
+
+        )
+
+        df["scanner_rank"] = df.index + 1
+
+        return df
