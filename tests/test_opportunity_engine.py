@@ -2,48 +2,54 @@ import pandas as pd
 
 from scanner.opportunity_engine import OpportunityEngine
 
+engine = OpportunityEngine()
+
 df = pd.DataFrame({
 
-    "symbol":["SBIN","RELIANCE"],
+    "symbol":[
 
-    "rs_score":[4.2,2.1],
+        "SBIN",
 
-    "rvol":[1.8,1.2],
+        "BEL",
 
-    "sector_strength":[3.5,1.0],
+        "HAL"
 
-    "compression_score":[92,70],
+    ],
 
-    "structure_score":[95,75]
+    "decision":[
+
+        "BREAKOUT",
+
+        "READY",
+
+        "WATCH"
+
+    ],
+
+    "total_score":[
+
+        95,
+
+        87,
+
+        72
+
+    ],
+
+    "confidence":[
+
+        92,
+
+        90,
+
+        78
+
+    ]
 
 })
 
-engine = OpportunityEngine()
-
-result = engine.calculate(
-
-    df,
-
-    market_status="BULLISH"
-
-)
-
 print(
 
-    result[
-
-        [
-
-            "symbol",
-
-            "total_score",
-
-            "confidence",
-
-            "stage"
-
-        ]
-
-    ]
+    engine.process(df)
 
 )
