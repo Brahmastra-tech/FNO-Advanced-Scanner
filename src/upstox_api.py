@@ -1,6 +1,6 @@
 import requests
 
-from src.settings import (
+from settings import (
     UPSTOX_ACCESS_TOKEN,
     BASE_URL,
 )
