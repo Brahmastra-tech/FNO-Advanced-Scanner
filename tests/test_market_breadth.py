@@ -1,6 +1,8 @@
 import pandas as pd
 
-from analytics.market_breadth import MarketBreadth
+from market.market_breadth import MarketBreadth
+
+engine = MarketBreadth()
 
 df = pd.DataFrame({
 
@@ -10,34 +12,28 @@ df = pd.DataFrame({
 
         "RELIANCE",
 
-        "TCS",
+        "ICICI",
 
-        "INFY",
-
-        "HDFCBANK"
+        "BEL"
 
     ],
 
-    "day_change_pct":[
+    "day_change":[
 
-        1.4,
+        1.2,
 
-        0.8,
+        -0.6,
 
-        -0.5,
+        0.4,
 
-        0.3,
-
-        -0.2
+        2.1
 
     ]
 
 })
 
-engine = MarketBreadth()
+print(
 
-breadth = engine.calculate(df)
+    engine.analyze(df)
 
-print(breadth)
-
-print(engine.market_status(breadth))
+)
