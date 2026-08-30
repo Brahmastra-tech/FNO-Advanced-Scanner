@@ -2,100 +2,46 @@ import pandas as pd
 
 from scanner.scanner_engine import ScannerEngine
 
-current = pd.DataFrame({
+engine = ScannerEngine()
 
-    "instrument_key":["1","2"],
-
-    "symbol":["SBIN","RELIANCE"],
-
-    "sector":[
-
-        "BANK",
-
-        "ENERGY"
-
-    ],
-
-    "open":[800,2900],
-
-    "high":[805,2930],
-
-    "low":[798,2890],
-
-    "close":[804,2925],
-
-    "volume":[180000,420000],
-
-    "turnover":[
-
-        145000000,
-
-        1800000000
-
-    ]
-
-})
-
-previous = pd.DataFrame({
-
-    "instrument_key":["1","2"],
+df = pd.DataFrame({
 
     "symbol":["SBIN","RELIANCE"],
 
-    "sector":[
+    "close":[810,2910],
 
-        "BANK",
+    "turnover":[900000000,2500000000],
 
-        "ENERGY"
+    "avg_volume":[400000,800000],
 
-    ],
+    "relative_strength_score":[90,82],
 
-    "open":[795,2895],
+    "volume_acceleration_score":[88,81],
 
-    "high":[802,2925],
+    "turnover_score":[91,80],
 
-    "low":[794,2885],
+    "sector_strength_score":[92,83],
 
-    "close":[800,2915],
+    "compression_score":[82,70],
 
-    "volume":[150000,380000],
+    "structure_score":[93,81],
 
-    "turnover":[
+    "market_context_score":[90,85],
 
-        120000000,
+    "breakout_score":[92,75],
 
-        1600000000
+    "smart_money_score":[88,77],
 
-    ]
+    "move_from_open":[0.8,1.2]
 
 })
 
-scanner = ScannerEngine()
+result = engine.run(df)
 
-result = scanner.run(
-
-    current,
-
-    previous,
-
-    market_status="BULLISH"
-
-)
-
-print(
-
-    result[
-
-        [
-
-            "symbol",
-
-            "total_score",
-
-            "scanner_stage"
-
-        ]
-
-    ]
-
-)
+print(result[[
+    "symbol",
+    "total_score",
+    "confidence",
+    "decision",
+    "rank"
+]])
