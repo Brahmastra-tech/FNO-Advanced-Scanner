@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "enhanced-idiom-455511-q0",
+  "private_key_id": "e3d310e4b453367f2adfca1f8d7765d7388c2196",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQDx8xYiKkHwR5Zd\nkW6JUbwm32Ac3sit0xj192sqDgUL89vRW6tDoYhOLbd1lsaezbFEu4qQxP0OMWqr\nwiVbejuTEb3vLOvulfdZW7h8YQEwofqJt6FL7AYDx2wVNbRD4GfNTJdZbtTr5UKj\nX5iCmXzIDQxsUjO+XTeRSkVvPgTZRKv49knJy5YE1/rYXW+epQSUik/yGwTItbUr\ntcDCJT0+Tqw+QgjVdjnRlnbBBDkXZ4tFYzUG22gUoLpafsnfXydiVwmgtrFpXsnp\n+nmQvo+cAE38F0LX5uEIp44QbYA9DnjF/kAp8zeuJW5BpKSllnFRRoC9R+Vaage8\nuUEOjbHxAgMBAAECggEANzSRfMsqj3IuH3xi/cceCLqYGg5FONA9VkYVeBuJ0D/c\njKj/a2eMi9YHkbeM60ggpf+qrrybxuTEo5shXf2GYVi/fza/QImMTiHM9uhFVrzm\nxwyUq5eXib4zbaV606/8z02mDPxqbca6TT+vM0FlRNohVwfskYeAedC6BhdfENmW\nVmAZIxpv/J61/rPtiO4GAfTsJAAQxFVmWTo4krlHwPYSUEzpje8PiOHVpOxiD7SR\n0lVogXAFBsgHR19coVsxKWLpr0w2X5nCeNcV24y+jkbfaLtu+ftB1viaNI6hgye3\nYFFofr5QFqtfHKkeANlyLjnj6Dmkh2jAr9TMI4FUdwKBgQD6fr9SJkwp/1MN1iIj\npu5MwCmUtkhGFOxu8ArhqnhbuJwk7bAT2mZKPYLvZ0VfXrO3ImtE/9d0xmVaXcUg\ntfzVYC6cBLJ+mnoIX8WS6x8of9ypUk70vmGfacSppGTkd/+IsMskveSdCXtkayHL\nRfBJJDV0rxv6xXD783yn7waPzwKBgQD3RENRqvyBeuxK9pvQUqCKYIVvNv3u9u1O\n605k4CiUerNwlPfbKrIpvDLZTF/hBYQ33Fh8s/M1OoJRb+eId8CxTdoAXWK2r0nL\no4jIx34I21nOj92oi3LJhZNkzNk6eTA1oZOdQW6j3v3paaAsI7sYB3huT+bkzZmg\npjokWCBSPwKBgFO1uZ/tVnSOc6XjEmORrH8PlJWy2LI62cw1AZ3qRvB34A5jM/1e\ndeKHbdMtUryNPEeOBAT57nmCt2ocffzxdD2mN81BsJiobPGRd8giNLZnDEm1TNdz\nK9KHGQaL/n9vLoDye+CaaOSlv4uOVavFgogexpJo1lPWWWyJMPY55Zp3AoGANVlp\nHOnDaTxYVyQ2IhBxyulgYMqAp1pngSuL0n/6wW5n4NaDU6o2noKYhgHQfgBuso68\nGMvKoaVqEKAQWIVd8eNWMdX0Qm43gdRa4tcH/mk1SzgHHyJXNdu4HXuFMvSKzkd6\nTeecM4cdSYscn+llqJ2UAlkC/ELP7rVuvgC1mIkCgYB10KPZwDrj0Z8hUNnynY4y\nojz4tqYsDP8Kl99/Q0qnom8gRzEk3o5ONEnujTqO/K5v0JdnfuIP7WE3q3g2EF+K\n/jZg3EsHQ1OmNI1q1YHcKzPk2mrOyCR58pWswG5zwGX/+RNCOUhPZ7qSTBXwinb9\nl8sMe4hGxuWElIXSANbEag==\n-----END PRIVATE KEY-----\n",
+  "client_email": "upstox-bot@enhanced-idiom-455511-q0.iam.gserviceaccount.com",
+  "client_id": "114205469608344717211",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/upstox-bot%40enhanced-idiom-455511-q0.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}
