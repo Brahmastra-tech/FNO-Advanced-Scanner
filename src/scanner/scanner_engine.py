@@ -1,41 +1,33 @@
-import pandas as pd
-
-from analytics.relative_strength import RelativeStrength
-from analytics.sector_strength import SectorStrength
-from analytics.volume_engine import VolumeEngine
-from analytics.market_breadth import MarketBreadth
-from analytics.compression_engine import CompressionEngine
-from analytics.structure_engine import StructureEngine
-from analytics.smart_money_engine import SmartMoneyEngine
-from analytics.breakout_engine import BreakoutEngine
-
-from scanner.rule_engine import RuleEngine
-from scanner.opportunity_engine import OpportunityEngine
+from scanner.filter_engine import FilterEngine
+from scanner.scoring_engine import ScoringEngine
+from scanner.decision_engine import DecisionEngine
 
 
 class ScannerEngine:
 
+    """
+    Main Scanner Pipeline
+
+    Raw Market Data
+            ↓
+    Filter Engine
+            ↓
+    Scoring Engine
+            ↓
+    Decision Engine
+            ↓
+    Ranked Opportunities
+    """
+
     def __init__(self):
 
-        self.rs = RelativeStrength()
+        self.filter_engine = FilterEngine()
 
-        self.sector = SectorStrength()
+        self.scoring_engine = ScoringEngine()
 
-        self.volume = VolumeEngine()
+        self.decision_engine = DecisionEngine()
 
-        self.market = MarketBreadth()
-
-        self.compression = CompressionEngine()
-
-        self.structure = StructureEngine()
-
-        self.smart = SmartMoneyEngine()
-
-        self.breakout = BreakoutEngine()
-
-        self.rule = RuleEngine()
-
-        self.opportunity = OpportunityEngine()
+    # --------------------------------------------------
 
     def run(
 
@@ -43,7 +35,7 @@ class ScannerEngine:
 
             current_df,
 
-            previous_df,
+            previous_df=None,
 
             market_status="NEUTRAL"
 
@@ -51,81 +43,35 @@ class ScannerEngine:
 
         df = current_df.copy()
 
-        print("\nRunning Relative Strength")
+        # ------------------------------------------
 
-        df = self.rs.calculate(
+        # Step 1
+        # Mandatory Filters
 
-            df,
+        df = self.filter_engine.apply(df)
 
-            previous_df
+        if len(df) == 0:
 
-        )
+            return df
 
-        print("Running Sector Strength")
+        # ------------------------------------------
 
-        df = self.sector.calculate(df)
+        # Step 2
+        # Score Everything
 
-        print("Running Volume Engine")
+        df = self.scoring_engine.process(df)
 
-        df = self.volume.calculate(
+        # ------------------------------------------
 
-            df,
+        # Step 3
+        # Final Decision
 
-            previous_df
+        df = self.decision_engine.process(df)
 
-        )
+        # ------------------------------------------
 
-        print("Running Market Breadth")
-
-        df = self.market.calculate(df)
-
-        print("Running Compression Engine")
-
-        df = self.compression.calculate(df)
-
-        print("Running Structure Engine")
-
-        df = self.structure.calculate(
-
-            df,
-
-            previous_df
-
-        )
-
-        print("Running Smart Money")
-
-        df = self.smart.calculate(
-
-            df,
-
-            previous_df
-
-        )
-
-        print("Running Breakout Engine")
-
-        df = self.breakout.calculate(df)
-
-        print("Running Rule Engine")
-
-        df = self.rule.calculate(
-
-            df,
-
-            market_status
-
-        )
-
-        print("Running Opportunity Engine")
-
-        df = self.opportunity.calculate(
-
-            df,
-
-            market_status
-
-        )
+        # Step 4
+        # Ranking
 
         df = df.sort_values(
 
@@ -141,58 +87,14 @@ class ScannerEngine:
 
         )
 
+        df.reset_index(
+
+            drop=True,
+
+            inplace=True
+
+        )
+
+        df["rank"] = df.index + 1
+
         return df
-
-    def watchlist(
-
-            self,
-
-            df
-
-    ):
-
-        return df[
-
-            df["scanner_stage"] == "WATCH"
-
-        ]
-
-    def ready(
-
-            self,
-
-            df
-
-    ):
-
-        return df[
-
-            df["scanner_stage"] == "READY"
-
-        ]
-
-    def breakout(
-
-            self,
-
-            df
-
-    ):
-
-        return df[
-
-            df["scanner_stage"] == "BREAKOUT"
-
-        ]
-
-    def top(
-
-            self,
-
-            df,
-
-            n=20
-
-    ):
-
-        return df.head(n)
