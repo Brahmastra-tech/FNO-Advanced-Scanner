@@ -17,7 +17,6 @@ class MarketSnapshot:
 
         for instrument_key, response in quotes.items():
 
-            # Skip invalid response
             if not isinstance(response, dict):
                 continue
 
@@ -29,7 +28,7 @@ class MarketSnapshot:
             if not data_dict:
                 continue
 
-            # Upstox returns exactly one quote
+            # Upstox returns one quote keyed by symbol
             data = next(iter(data_dict.values()), None)
 
             if data is None:
@@ -47,41 +46,24 @@ class MarketSnapshot:
 
             row = {
                 "timestamp": datetime.now(),
-
                 "instrument_key": instrument_key,
-
                 "symbol": data.get("symbol"),
-
-                # Current Upstox quote API doesn't return exchange
                 "exchange": data.get("exchange"),
-
                 "ltp": ltp,
-
                 "open": ohlc.get("open"),
                 "high": ohlc.get("high"),
                 "low": ohlc.get("low"),
                 "close": ohlc.get("close"),
-
                 "volume": volume,
-
-                # Calculated because Upstox no longer returns it
                 "turnover": turnover,
-
                 "oi": data.get("oi"),
-
-                # Current API doesn't return prev_oi
                 "prev_oi": data.get("prev_oi"),
-
                 "avg_price": data.get("average_price"),
-
                 "last_trade_time": data.get("last_trade_time"),
-
                 "total_buy_qty": data.get("total_buy_quantity"),
                 "total_sell_qty": data.get("total_sell_quantity"),
-
                 "upper_circuit": data.get("upper_circuit_limit"),
                 "lower_circuit": data.get("lower_circuit_limit"),
-
                 "bid": None,
                 "bid_qty": None,
                 "ask": None,
