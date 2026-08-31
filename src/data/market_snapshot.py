@@ -28,7 +28,12 @@ class MarketSnapshot:
             if not data_dict:
                 continue
 
+<<<<<<< HEAD
             # Upstox returns one quote keyed by symbol
+=======
+            # Upstox returns one quote keyed by trading symbol,
+            # not by instrument_key.
+>>>>>>> faaea6a (Fix Upstox quote parsing and validator)
             data = next(iter(data_dict.values()), None)
 
             if data is None:
@@ -49,13 +54,22 @@ class MarketSnapshot:
                 "instrument_key": instrument_key,
                 "symbol": data.get("symbol"),
                 "exchange": data.get("exchange"),
+<<<<<<< HEAD
                 "ltp": ltp,
+=======
+                "ltp": data.get("last_price"),
+>>>>>>> faaea6a (Fix Upstox quote parsing and validator)
                 "open": ohlc.get("open"),
                 "high": ohlc.get("high"),
                 "low": ohlc.get("low"),
                 "close": ohlc.get("close"),
+<<<<<<< HEAD
                 "volume": volume,
                 "turnover": turnover,
+=======
+                "volume": data.get("volume"),
+                "turnover": data.get("turnover"),
+>>>>>>> faaea6a (Fix Upstox quote parsing and validator)
                 "oi": data.get("oi"),
                 "prev_oi": data.get("prev_oi"),
                 "avg_price": data.get("average_price"),
@@ -83,5 +97,4 @@ class MarketSnapshot:
             rows.append(row)
 
         self.snapshot = pd.DataFrame(rows)
-
         return self.snapshot
