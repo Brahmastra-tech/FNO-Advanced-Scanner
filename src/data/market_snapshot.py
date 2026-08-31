@@ -22,7 +22,16 @@ class MarketSnapshot:
 
             # Handle Upstox response wrapper
             if isinstance(response, dict) and "data" in response:
-                data = response["data"].get(instrument_key, {})
+
+                data_dict = response.get("data", {})
+
+                if not data_dict:
+                    continue
+
+                # Upstox returns one quote per response.
+                # The key may be "NSE_EQ:MARUTI" instead of the instrument key.
+                data = next(iter(data_dict.values()))
+
             else:
                 data = response
 
