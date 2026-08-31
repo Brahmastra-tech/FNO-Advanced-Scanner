@@ -17,27 +17,19 @@ class MarketSnapshot:
 
         for instrument_key, response in quotes.items():
 
-            # Skip invalid responses
-            if response is None or not isinstance(response, dict):
+            # Skip invalid response
+            if not isinstance(response, dict):
                 continue
 
-            # Skip failed API calls
             if response.get("status") != "success":
                 continue
 
-            # Extract quote dictionary
             data_dict = response.get("data", {})
 
             if not data_dict:
                 continue
 
-            # Upstox returns exactly one quote in the data dict
-            # Example:
-            # {
-            #   "data": {
-            #       "NSE_EQ:MARUTI": {...}
-            #   }
-            # }
+            # Upstox returns exactly one quote
             data = next(iter(data_dict.values()), None)
 
             if data is None:
@@ -46,24 +38,38 @@ class MarketSnapshot:
             ohlc = data.get("ohlc", {})
             depth = data.get("depth", {})
 
+            volume = data.get("volume")
+            ltp = data.get("last_price")
+
+            turnover = None
+            if volume is not None and ltp is not None:
+                turnover = volume * ltp
+
             row = {
                 "timestamp": datetime.now(),
 
                 "instrument_key": instrument_key,
+
                 "symbol": data.get("symbol"),
+
+                # Current Upstox quote API doesn't return exchange
                 "exchange": data.get("exchange"),
 
-                "ltp": data.get("last_price"),
+                "ltp": ltp,
 
                 "open": ohlc.get("open"),
                 "high": ohlc.get("high"),
                 "low": ohlc.get("low"),
                 "close": ohlc.get("close"),
 
-                "volume": data.get("volume"),
-                "turnover": data.get("turnover"),
+                "volume": volume,
+
+                # Calculated because Upstox no longer returns it
+                "turnover": turnover,
 
                 "oi": data.get("oi"),
+
+                # Current API doesn't return prev_oi
                 "prev_oi": data.get("prev_oi"),
 
                 "avg_price": data.get("average_price"),
@@ -82,13 +88,11 @@ class MarketSnapshot:
                 "ask_qty": None,
             }
 
-            # Best Bid
             buy = depth.get("buy", [])
             if buy:
                 row["bid"] = buy[0].get("price")
                 row["bid_qty"] = buy[0].get("quantity")
 
-            # Best Ask
             sell = depth.get("sell", [])
             if sell:
                 row["ask"] = sell[0].get("price")
