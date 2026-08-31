@@ -11,22 +11,26 @@ class Validator:
 
         self.errors = []
 
+        # -----------------------------------
+        # Snapshot Exists
+        # -----------------------------------
+
         if snapshot_df is None or snapshot_df.empty:
             self.errors.append("Snapshot is empty.")
             return False
+
+        # -----------------------------------
+        # Required Columns
+        # -----------------------------------
 
         required_columns = [
             "instrument_key",
             "symbol",
             "ltp",
             "volume",
-            "turnover",
-            "timestamp"
+            "timestamp",
         ]
 
-        # -----------------------------
-        # Required Columns
-        # -----------------------------
         for col in required_columns:
 
             if col not in snapshot_df.columns:
@@ -35,9 +39,10 @@ class Validator:
         if self.errors:
             return False
 
-        # -----------------------------
+        # -----------------------------------
         # Duplicate Instrument Keys
-        # -----------------------------
+        # -----------------------------------
+
         duplicate_keys = snapshot_df["instrument_key"].duplicated().sum()
 
         if duplicate_keys > 0:
@@ -45,39 +50,10 @@ class Validator:
                 f"Duplicate Instrument Keys : {duplicate_keys}"
             )
 
-        # -----------------------------
-        # Missing LTP
-        # -----------------------------
-        missing_ltp = snapshot_df["ltp"].isna().sum()
-
-        if missing_ltp > 0:
-            self.errors.append(
-                f"Missing LTP : {missing_ltp}"
-            )
-
-        # -----------------------------
-        # Missing Volume
-        # -----------------------------
-        missing_volume = snapshot_df["volume"].isna().sum()
-
-        if missing_volume > 0:
-            self.errors.append(
-                f"Missing Volume : {missing_volume}"
-            )
-
-        # -----------------------------
-        # Missing Turnover
-        # -----------------------------
-        missing_turnover = snapshot_df["turnover"].isna().sum()
-
-        if missing_turnover > 0:
-            self.errors.append(
-                f"Missing Turnover : {missing_turnover}"
-            )
-
-        # -----------------------------
+        # -----------------------------------
         # Missing Symbol
-        # -----------------------------
+        # -----------------------------------
+
         missing_symbol = snapshot_df["symbol"].isna().sum()
 
         if missing_symbol > 0:
@@ -85,14 +61,37 @@ class Validator:
                 f"Missing Symbol : {missing_symbol}"
             )
 
-        # -----------------------------
-        # Missing Timestamp
-        # -----------------------------
-        missing_time = snapshot_df["timestamp"].isna().sum()
+        # -----------------------------------
+        # Missing LTP
+        # -----------------------------------
 
-        if missing_time > 0:
+        missing_ltp = snapshot_df["ltp"].isna().sum()
+
+        if missing_ltp > 0:
             self.errors.append(
-                f"Missing Timestamp : {missing_time}"
+                f"Missing LTP : {missing_ltp}"
+            )
+
+        # -----------------------------------
+        # Missing Volume
+        # -----------------------------------
+
+        missing_volume = snapshot_df["volume"].isna().sum()
+
+        if missing_volume > 0:
+            self.errors.append(
+                f"Missing Volume : {missing_volume}"
+            )
+
+        # -----------------------------------
+        # Missing Timestamp
+        # -----------------------------------
+
+        missing_timestamp = snapshot_df["timestamp"].isna().sum()
+
+        if missing_timestamp > 0:
+            self.errors.append(
+                f"Missing Timestamp : {missing_timestamp}"
             )
 
         return len(self.errors) == 0
@@ -125,9 +124,7 @@ class Validator:
         print("=" * 55)
 
     def get_errors(self):
-
         return self.errors
 
     def has_errors(self):
-
         return len(self.errors) > 0
