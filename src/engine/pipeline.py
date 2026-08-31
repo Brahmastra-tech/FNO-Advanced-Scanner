@@ -1,3 +1,5 @@
+from pprint import pprint
+
 from data.universe import Universe
 from data.live_quotes import LiveQuotes
 from data.market_snapshot import MarketSnapshot
@@ -14,17 +16,11 @@ class Pipeline:
         print("Initializing Pipeline...")
 
         self.universe = Universe()
-
         self.live_quotes = LiveQuotes()
-
         self.snapshot = MarketSnapshot()
-
         self.validator = Validator()
-
         self.cache = MarketCache()
-
         self.store = SnapshotStore()
-
         self.candles = CandleBuilder()
 
         print("Pipeline Ready.")
@@ -43,11 +39,18 @@ class Pipeline:
 
         print(f"Universe Loaded : {len(stocks)} Stocks")
 
+        if stocks.empty:
+            print("Universe is empty.")
+            return False
+
         # -------------------------
         # Instrument Keys
         # -------------------------
 
         keys = stocks["instrument_key"].tolist()
+
+        print("\nFirst 5 Instrument Keys:")
+        print(keys[:5])
 
         # -------------------------
         # Fetch Live Quotes
@@ -55,7 +58,22 @@ class Pipeline:
 
         quotes = self.live_quotes.quotes(keys)
 
-        print(f"Quotes Received : {len(quotes)}")
+        print(f"\nQuotes Received : {len(quotes)}")
+
+        if not quotes:
+            print("LiveQuotes returned an empty dictionary.")
+            return False
+
+        first_key = next(iter(quotes))
+
+        print("\n==============================")
+        print("FIRST QUOTE")
+        print("==============================")
+        print("Instrument Key:")
+        print(first_key)
+
+        print("\nResponse:")
+        pprint(quotes[first_key])
 
         # -------------------------
         # Build Snapshot
@@ -63,7 +81,12 @@ class Pipeline:
 
         snapshot_df = self.snapshot.build(quotes)
 
-        print(f"Snapshot Created : {len(snapshot_df)}")
+        print("\n==============================")
+        print("SNAPSHOT")
+        print("==============================")
+        print(snapshot_df)
+
+        print(f"\nSnapshot Created : {len(snapshot_df)}")
 
         # -------------------------
         # Validate
@@ -74,9 +97,7 @@ class Pipeline:
         self.validator.report(snapshot_df)
 
         if not status:
-
             print("Validation Failed.")
-
             return False
 
         # -------------------------
@@ -84,7 +105,6 @@ class Pipeline:
         # -------------------------
 
         self.cache.update_snapshot(snapshot_df)
-
         print("Market Cache Updated")
 
         # -------------------------
@@ -92,7 +112,6 @@ class Pipeline:
         # -------------------------
 
         self.store.update(snapshot_df)
-
         print("Snapshot Store Updated")
 
         # -------------------------
@@ -100,7 +119,6 @@ class Pipeline:
         # -------------------------
 
         self.candles.update(snapshot_df)
-
         print("Candles Updated")
 
         print("\nPipeline Completed Successfully.")
