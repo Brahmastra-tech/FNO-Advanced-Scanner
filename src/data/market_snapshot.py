@@ -15,27 +15,56 @@ class MarketSnapshot:
 
         rows = []
 
+        print(f"\nBuilding snapshot from {len(quotes)} quotes...\n")
+
         for instrument_key, response in quotes.items():
 
-            # Skip invalid response
-            if not response or not isinstance(response, dict):
+            print("=" * 80)
+            print("Instrument :", instrument_key)
+
+            # ----------------------------
+            # Validate response
+            # ----------------------------
+
+            if response is None:
+                print("Skipped -> Response is None")
                 continue
 
-            # Skip failed API responses
+            if not isinstance(response, dict):
+                print("Skipped -> Response is not dict")
+                continue
+
+            print("Status :", response.get("status"))
+
             if response.get("status") != "success":
+                print("Skipped -> API status not success")
                 continue
 
-            # Extract data dictionary
+            # ----------------------------
+            # Extract data
+            # ----------------------------
+
             data_dict = response.get("data", {})
 
+            print("Outer Key :", instrument_key)
+            print("Inner Keys:", list(data_dict.keys()))
+
             if not data_dict:
+                print("Skipped -> Empty data dictionary")
                 continue
 
-            # Upstox returns exactly one quote inside data
             data = next(iter(data_dict.values()), None)
 
             if data is None:
+                print("Skipped -> No quote object found")
                 continue
+
+            print("Symbol :", data.get("symbol"))
+            print("LTP    :", data.get("last_price"))
+
+            # ----------------------------
+            # Market fields
+            # ----------------------------
 
             ohlc = data.get("ohlc", {})
             depth = data.get("depth", {})
@@ -76,20 +105,37 @@ class MarketSnapshot:
                 "ask_qty": None,
             }
 
+            # ----------------------------
             # Best Bid
+            # ----------------------------
+
             buy = depth.get("buy", [])
+
             if buy:
                 row["bid"] = buy[0].get("price")
                 row["bid_qty"] = buy[0].get("quantity")
 
+            # ----------------------------
             # Best Ask
+            # ----------------------------
+
             sell = depth.get("sell", [])
+
             if sell:
                 row["ask"] = sell[0].get("price")
                 row["ask_qty"] = sell[0].get("quantity")
 
             rows.append(row)
 
+            print("Row Added")
+
+        print("\n" + "=" * 80)
+        print("Rows Built :", len(rows))
+        print("=" * 80)
+
         self.snapshot = pd.DataFrame(rows)
+
+        if not self.snapshot.empty:
+            print(self.snapshot.head())
 
         return self.snapshot
