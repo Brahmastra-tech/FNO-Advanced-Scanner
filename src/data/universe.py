@@ -5,8 +5,8 @@ class Universe:
 
     def __init__(self):
 
-        self.stocks = pd.read_csv("data/nifty500.csv")
-        self.indices = pd.read_parquet("data/indices.parquet")
+        self.stocks = pd.read_csv("src/data/nifty500.csv")
+        self.indices = pd.read_parquet("src/data/indices.parquet")
 
     def get_indices(self):
 
