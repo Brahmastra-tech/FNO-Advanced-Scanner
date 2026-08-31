@@ -5,7 +5,29 @@ class Universe:
 
     def __init__(self):
 
-        self.stocks = pd.read_csv("data/nifty500.csv")
+        # Upstox instrument master
+        all_stocks = pd.read_parquet("data/stocks.parquet")
+
+        # Nifty 500 list
+        nifty500 = pd.read_csv("src/data/nifty500.csv")
+
+        # Symbols from CSV
+        symbols = (
+            nifty500["Symbol"]
+            .astype(str)
+            .str.strip()
+            .str.upper()
+        )
+
+        # Keep only Nifty 500 stocks
+        self.stocks = all_stocks[
+            all_stocks["trading_symbol"]
+            .astype(str)
+            .str.strip()
+            .str.upper()
+            .isin(symbols)
+        ].reset_index(drop=True)
+
         self.indices = pd.read_parquet("data/indices.parquet")
 
     def get_indices(self):
@@ -16,7 +38,7 @@ class Universe:
             "NIFTY FIN SERVICE",
             "NIFTY MIDCAP SELECT",
             "SENSEX",
-            "BANKEX"
+            "BANKEX",
         ]
 
         return self.indices[
