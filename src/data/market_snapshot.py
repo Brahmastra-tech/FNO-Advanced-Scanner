@@ -3,139 +3,60 @@ import pandas as pd
 
 
 class MarketSnapshot:
-    """
-    Converts raw Upstox quote responses into
-    a clean dataframe used throughout the system.
-    """
 
     def __init__(self):
         self.snapshot = pd.DataFrame()
 
-    def build(self, quotes: dict) -> pd.DataFrame:
+    def build(self, quotes):
 
         rows = []
 
-        print(f"\nBuilding snapshot from {len(quotes)} quotes...\n")
+        print("TOTAL QUOTES:", len(quotes))
 
         for instrument_key, response in quotes.items():
 
-            print("=" * 80)
-            print("Instrument :", instrument_key)
+            print("\n====================")
+            print("KEY:", instrument_key)
+            print("TYPE:", type(response))
+            print("STATUS:", response.get("status"))
 
-            # ----------------------------
-            # Validate response
-            # ----------------------------
-
-            if response is None:
-                print("Skipped -> Response is None")
+            if not response:
+                print("FAILED -> response empty")
                 continue
-
-            if not isinstance(response, dict):
-                print("Skipped -> Response is not dict")
-                continue
-
-            print("Status :", response.get("status"))
 
             if response.get("status") != "success":
-                print("Skipped -> API status not success")
+                print("FAILED -> status")
                 continue
-
-            # ----------------------------
-            # Extract data
-            # ----------------------------
 
             data_dict = response.get("data", {})
 
-            print("Outer Key :", instrument_key)
-            print("Inner Keys:", list(data_dict.keys()))
+            print("DATA_DICT TYPE:", type(data_dict))
+            print("DATA_DICT LENGTH:", len(data_dict))
 
             if not data_dict:
-                print("Skipped -> Empty data dictionary")
+                print("FAILED -> empty data")
                 continue
 
-            data = next(iter(data_dict.values()), None)
+            data = next(iter(data_dict.values()))
 
-            if data is None:
-                print("Skipped -> No quote object found")
-                continue
-
-            print("Symbol :", data.get("symbol"))
-            print("LTP    :", data.get("last_price"))
-
-            # ----------------------------
-            # Market fields
-            # ----------------------------
-
-            ohlc = data.get("ohlc", {})
-            depth = data.get("depth", {})
+            print("SYMBOL:", data.get("symbol"))
 
             row = {
                 "timestamp": datetime.now(),
-
                 "instrument_key": instrument_key,
                 "symbol": data.get("symbol"),
-                "exchange": data.get("exchange"),
-
                 "ltp": data.get("last_price"),
-
-                "open": ohlc.get("open"),
-                "high": ohlc.get("high"),
-                "low": ohlc.get("low"),
-                "close": ohlc.get("close"),
-
-                "volume": data.get("volume"),
-                "turnover": data.get("turnover"),
-
-                "oi": data.get("oi"),
-                "prev_oi": data.get("prev_oi"),
-
-                "avg_price": data.get("average_price"),
-
-                "last_trade_time": data.get("last_trade_time"),
-
-                "total_buy_qty": data.get("total_buy_quantity"),
-                "total_sell_qty": data.get("total_sell_quantity"),
-
-                "upper_circuit": data.get("upper_circuit_limit"),
-                "lower_circuit": data.get("lower_circuit_limit"),
-
-                "bid": None,
-                "bid_qty": None,
-                "ask": None,
-                "ask_qty": None,
             }
-
-            # ----------------------------
-            # Best Bid
-            # ----------------------------
-
-            buy = depth.get("buy", [])
-
-            if buy:
-                row["bid"] = buy[0].get("price")
-                row["bid_qty"] = buy[0].get("quantity")
-
-            # ----------------------------
-            # Best Ask
-            # ----------------------------
-
-            sell = depth.get("sell", [])
-
-            if sell:
-                row["ask"] = sell[0].get("price")
-                row["ask_qty"] = sell[0].get("quantity")
 
             rows.append(row)
 
-            print("Row Added")
+            print("ROW ADDED")
 
-        print("\n" + "=" * 80)
-        print("Rows Built :", len(rows))
-        print("=" * 80)
+            # Only inspect the first successful record
+            break
+
+        print("\nTOTAL ROWS BUILT:", len(rows))
 
         self.snapshot = pd.DataFrame(rows)
-
-        if not self.snapshot.empty:
-            print(self.snapshot.head())
 
         return self.snapshot
