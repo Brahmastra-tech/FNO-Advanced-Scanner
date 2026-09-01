@@ -1,8 +1,15 @@
 import pandas as pd
 
+
 class Universe:
 
     def __init__(self):
+
+        print("Loading Universe...")
+
+        # ------------------------------------
+        # Load F&O Stocks
+        # ------------------------------------
 
         all_stocks = pd.read_parquet("data/stocks.parquet")
 
@@ -26,7 +33,15 @@ class Universe:
             .reset_index(drop=True)
         )
 
+        print(f"Loaded {len(self.stocks)} F&O Stocks")
+
+        # ------------------------------------
+        # Load Indices
+        # ------------------------------------
+
         self.indices = pd.read_parquet("data/indices.parquet")
+
+        print(f"Loaded {len(self.indices)} Indices")
 
     def get_indices(self):
 
@@ -41,8 +56,8 @@ class Universe:
 
         return self.indices[
             self.indices["trading_symbol"].isin(wanted)
-        ]
+        ].reset_index(drop=True)
 
     def get_fno_stocks(self):
 
-        return self.stocksgit push origin main
+        return self.stocks
