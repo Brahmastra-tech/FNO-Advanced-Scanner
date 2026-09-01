@@ -26,22 +26,14 @@ class Pipeline:
 
         self.cache = MarketCache()
         self.store = SnapshotStore()
-        self.candles = CandleBuilder()
 
-        # --------------------------------
         # Google Sheets
-        # --------------------------------
-        self.gs = None
+        self.gs = GoogleSheet(
+            settings.GOOGLE_CREDENTIALS,
+            settings.GOOGLE_SPREADSHEET
+        )
 
-        try:
-            self.gs = GoogleSheet(
-                settings.GOOGLE_CREDENTIALS,
-                settings.GOOGLE_SPREADSHEET
-            )
-            print("Google Sheets Connected.")
-
-        except Exception as e:
-            print(f"Google Sheets Disabled : {e}")
+        self.candles = CandleBuilder()
 
         print("Pipeline Ready.")
 
@@ -51,9 +43,9 @@ class Pipeline:
         print("Starting Market Scan...")
         print("==============================")
 
-        # --------------------------------
+        # ---------------------------------
         # Load Universe
-        # --------------------------------
+        # ---------------------------------
 
         stocks = self.universe.get_fno_stocks()
 
@@ -63,54 +55,35 @@ class Pipeline:
             print("Universe is empty.")
             return False
 
-        # --------------------------------
+        # ---------------------------------
         # Instrument Keys
-        # --------------------------------
+        # ---------------------------------
 
         keys = stocks["instrument_key"].tolist()
 
-        print("\nFirst 5 Instrument Keys:")
-        print(keys[:5])
-
-        # --------------------------------
-        # Fetch Live Quotes
-        # --------------------------------
+        # ---------------------------------
+        # Fetch Quotes
+        # ---------------------------------
 
         quotes = self.live_quotes.quotes(keys)
 
-        print(f"\nQuotes Received : {len(quotes)}")
+        print(f"Quotes Received : {len(quotes)}")
 
         if not quotes:
-            print("LiveQuotes returned an empty dictionary.")
+            print("No quotes received.")
             return False
 
-        first_key = next(iter(quotes))
-
-        print("\n==============================")
-        print("FIRST QUOTE")
-        print("==============================")
-        print("Instrument Key:")
-        print(first_key)
-
-        print("\nResponse:")
-        pprint(quotes[first_key])
-
-        # --------------------------------
+        # ---------------------------------
         # Build Snapshot
-        # --------------------------------
+        # ---------------------------------
 
         snapshot_df = self.snapshot.build(quotes)
 
-        print("\n==============================")
-        print("SNAPSHOT")
-        print("==============================")
-        print(snapshot_df)
+        print(f"Snapshot Created : {len(snapshot_df)}")
 
-        print(f"\nSnapshot Created : {len(snapshot_df)}")
-
-        # --------------------------------
+        # ---------------------------------
         # Validate
-        # --------------------------------
+        # ---------------------------------
 
         status = self.validator.validate(snapshot_df)
 
@@ -120,38 +93,42 @@ class Pipeline:
             print("Validation Failed.")
             return False
 
-        # --------------------------------
-        # Update Market Cache
-        # --------------------------------
+        # ---------------------------------
+        # Update Cache
+        # ---------------------------------
 
         self.cache.update_snapshot(snapshot_df)
+
         print("Market Cache Updated")
 
-        # --------------------------------
-        # Store Snapshot
-        # --------------------------------
+        # ---------------------------------
+        # Update Snapshot Store
+        # ---------------------------------
 
         self.store.update(snapshot_df)
+
         print("Snapshot Store Updated")
 
-        # --------------------------------
+        # ---------------------------------
         # Upload to Google Sheets
-        # --------------------------------
+        # ---------------------------------
 
-        if self.gs is not None:
+        try:
 
-            try:
-                self.gs.update_stocks(snapshot_df)
-                print("Google Sheet Updated")
+            self.gs.update_stocks(snapshot_df)
 
-            except Exception as e:
-                print(f"Google Sheet Error : {e}")
+            print("Google Sheet Updated")
 
-        # --------------------------------
+        except Exception as e:
+
+            print(f"Google Sheet Error : {e}")
+
+        # ---------------------------------
         # Update Candles
-        # --------------------------------
+        # ---------------------------------
 
         self.candles.update(snapshot_df)
+
         print("Candles Updated")
 
         print("\nPipeline Completed Successfully.")
