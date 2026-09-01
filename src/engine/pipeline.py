@@ -4,13 +4,15 @@ from data.universe import Universe
 from data.live_quotes import LiveQuotes
 from data.market_snapshot import MarketSnapshot
 from data.validator import Validator
-from data.candle_builder import CandleBuilder
-
 from storage.market_cache import MarketCache
 from storage.snapshot_store import SnapshotStore
+from data.candle_builder import CandleBuilder
 
 from sheets.google_sheet import GoogleSheet
-import settings
+from settings import (
+    GOOGLE_CREDENTIALS,
+    GOOGLE_SPREADSHEET,
+)
 
 
 class Pipeline:
@@ -23,17 +25,13 @@ class Pipeline:
         self.live_quotes = LiveQuotes()
         self.snapshot = MarketSnapshot()
         self.validator = Validator()
-
         self.cache = MarketCache()
         self.store = SnapshotStore()
         self.candles = CandleBuilder()
 
-        # -----------------------------
-        # Google Sheets
-        # -----------------------------
-        self.google = GoogleSheet(
-            settings.GOOGLE_CREDENTIALS,
-            settings.GOOGLE_SPREADSHEET
+        self.google_sheet = GoogleSheet(
+            GOOGLE_CREDENTIALS,
+            GOOGLE_SPREADSHEET
         )
 
         print("Pipeline Ready.")
@@ -44,9 +42,9 @@ class Pipeline:
         print("Starting Market Scan...")
         print("==============================")
 
-        # ---------------------------------
-        # Universe
-        # ---------------------------------
+        # -------------------------
+        # Load Universe
+        # -------------------------
 
         stocks = self.universe.get_fno_stocks()
 
@@ -56,18 +54,18 @@ class Pipeline:
             print("Universe is empty.")
             return False
 
-        # ---------------------------------
+        # -------------------------
         # Instrument Keys
-        # ---------------------------------
+        # -------------------------
 
         keys = stocks["instrument_key"].tolist()
 
         print("\nFirst 5 Instrument Keys:")
         print(keys[:5])
 
-        # ---------------------------------
-        # Live Quotes
-        # ---------------------------------
+        # -------------------------
+        # Fetch Live Quotes
+        # -------------------------
 
         quotes = self.live_quotes.quotes(keys)
 
@@ -82,27 +80,29 @@ class Pipeline:
         print("\n==============================")
         print("FIRST QUOTE")
         print("==============================")
+
+        print("Instrument Key:")
         print(first_key)
 
+        print("\nResponse:")
         pprint(quotes[first_key])
 
-        # ---------------------------------
-        # Snapshot
-        # ---------------------------------
+        # -------------------------
+        # Build Snapshot
+        # -------------------------
 
         snapshot_df = self.snapshot.build(quotes)
 
         print("\n==============================")
         print("SNAPSHOT")
         print("==============================")
-
         print(snapshot_df)
 
         print(f"\nSnapshot Created : {len(snapshot_df)}")
 
-        # ---------------------------------
-        # Validation
-        # ---------------------------------
+        # -------------------------
+        # Validate
+        # -------------------------
 
         status = self.validator.validate(snapshot_df)
 
@@ -112,39 +112,33 @@ class Pipeline:
             print("Validation Failed.")
             return False
 
-        # ---------------------------------
-        # Market Cache
-        # ---------------------------------
+        # -------------------------
+        # Update Cache
+        # -------------------------
 
         self.cache.update_snapshot(snapshot_df)
-
         print("Market Cache Updated")
 
-        # ---------------------------------
-        # Snapshot Store
-        # ---------------------------------
+        # -------------------------
+        # Update Snapshot Store
+        # -------------------------
 
         self.store.update(snapshot_df)
-
         print("Snapshot Store Updated")
 
-        # ---------------------------------
-        # Candle Builder
-        # ---------------------------------
+        # -------------------------
+        # Update Google Sheet
+        # -------------------------
+
+        self.google_sheet.update_stocks(snapshot_df)
+        print("Google Sheet Updated")
+
+        # -------------------------
+        # Build Candles
+        # -------------------------
 
         self.candles.update(snapshot_df)
-
         print("Candles Updated")
-
-        # ---------------------------------
-        # Google Sheets
-        # ---------------------------------
-
-        print("\nUpdating Google Sheet...")
-
-        self.google.update_stocks(snapshot_df)
-
-        print("Google Sheet Updated")
 
         print("\nPipeline Completed Successfully.")
 
