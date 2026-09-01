@@ -24,7 +24,7 @@ class GoogleSheet:
 
         client = gspread.authorize(creds)
 
-        self.sheet = client.open(spreadsheet_name)
+        self.sheet = client.open_by_key(spreadsheet_name)
 
     # ---------------------------------------------------------
     # Create worksheet if it doesn't exist
