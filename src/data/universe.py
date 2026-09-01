@@ -1,6 +1,5 @@
 import pandas as pd
 
-
 class Universe:
 
     def __init__(self):
@@ -46,4 +45,4 @@ class Universe:
 
     def get_fno_stocks(self):
 
-        return self.stocks
+        return self.stocksgit push origin main
