@@ -4,9 +4,13 @@ from data.universe import Universe
 from data.live_quotes import LiveQuotes
 from data.market_snapshot import MarketSnapshot
 from data.validator import Validator
+from data.candle_builder import CandleBuilder
+
 from storage.market_cache import MarketCache
 from storage.snapshot_store import SnapshotStore
-from data.candle_builder import CandleBuilder
+
+from sheets.google_sheet import GoogleSheet
+from core.config import settings
 
 
 class Pipeline:
@@ -19,9 +23,25 @@ class Pipeline:
         self.live_quotes = LiveQuotes()
         self.snapshot = MarketSnapshot()
         self.validator = Validator()
+
         self.cache = MarketCache()
         self.store = SnapshotStore()
         self.candles = CandleBuilder()
+
+        # --------------------------------
+        # Google Sheets
+        # --------------------------------
+        self.gs = None
+
+        try:
+            self.gs = GoogleSheet(
+                settings.GOOGLE_CREDENTIALS,
+                settings.GOOGLE_SPREADSHEET
+            )
+            print("Google Sheets Connected.")
+
+        except Exception as e:
+            print(f"Google Sheets Disabled : {e}")
 
         print("Pipeline Ready.")
 
@@ -31,9 +51,9 @@ class Pipeline:
         print("Starting Market Scan...")
         print("==============================")
 
-        # -------------------------
+        # --------------------------------
         # Load Universe
-        # -------------------------
+        # --------------------------------
 
         stocks = self.universe.get_fno_stocks()
 
@@ -43,18 +63,18 @@ class Pipeline:
             print("Universe is empty.")
             return False
 
-        # -------------------------
+        # --------------------------------
         # Instrument Keys
-        # -------------------------
+        # --------------------------------
 
         keys = stocks["instrument_key"].tolist()
 
         print("\nFirst 5 Instrument Keys:")
         print(keys[:5])
 
-        # -------------------------
+        # --------------------------------
         # Fetch Live Quotes
-        # -------------------------
+        # --------------------------------
 
         quotes = self.live_quotes.quotes(keys)
 
@@ -75,9 +95,9 @@ class Pipeline:
         print("\nResponse:")
         pprint(quotes[first_key])
 
-        # -------------------------
+        # --------------------------------
         # Build Snapshot
-        # -------------------------
+        # --------------------------------
 
         snapshot_df = self.snapshot.build(quotes)
 
@@ -88,9 +108,9 @@ class Pipeline:
 
         print(f"\nSnapshot Created : {len(snapshot_df)}")
 
-        # -------------------------
+        # --------------------------------
         # Validate
-        # -------------------------
+        # --------------------------------
 
         status = self.validator.validate(snapshot_df)
 
@@ -100,23 +120,36 @@ class Pipeline:
             print("Validation Failed.")
             return False
 
-        # -------------------------
-        # Update Cache
-        # -------------------------
+        # --------------------------------
+        # Update Market Cache
+        # --------------------------------
 
         self.cache.update_snapshot(snapshot_df)
         print("Market Cache Updated")
 
-        # -------------------------
-        # Update Snapshot Store
-        # -------------------------
+        # --------------------------------
+        # Store Snapshot
+        # --------------------------------
 
         self.store.update(snapshot_df)
         print("Snapshot Store Updated")
 
-        # -------------------------
-        # Build Candles
-        # -------------------------
+        # --------------------------------
+        # Upload to Google Sheets
+        # --------------------------------
+
+        if self.gs is not None:
+
+            try:
+                self.gs.update_stocks(snapshot_df)
+                print("Google Sheet Updated")
+
+            except Exception as e:
+                print(f"Google Sheet Error : {e}")
+
+        # --------------------------------
+        # Update Candles
+        # --------------------------------
 
         self.candles.update(snapshot_df)
         print("Candles Updated")
