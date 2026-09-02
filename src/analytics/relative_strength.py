@@ -5,15 +5,21 @@ class RelativeStrength:
     """
     Relative Strength Engine
 
-    Calculates:
+    Calculates
 
-    1. RS vs Nifty
-    2. RS vs Sector
-    3. Relative Strength Score
+    • RS vs Nifty
+    • RS vs Sector
+    • Raw RS Score
+    • Relative Strength Score (0-100)
+    • RS Rank
     """
 
     def __init__(self):
         pass
+
+    # ==========================================================
+    # Main Calculation
+    # ==========================================================
 
     def calculate(self, df, nifty_change=0.0, sector_strength=None):
 
@@ -21,10 +27,6 @@ class RelativeStrength:
             sector_strength = {}
 
         market = df.copy()
-
-        # -----------------------------
-        # Check Required Columns
-        # -----------------------------
 
         required = [
             "instrument_key",
@@ -36,105 +38,111 @@ class RelativeStrength:
         for col in required:
 
             if col not in market.columns:
-
                 raise Exception(f"Missing column : {col}")
 
-        # -----------------------------
+        # ------------------------------------------------------
+        # Ensure numeric
+        # ------------------------------------------------------
+
+        market["day_change_pct"] = pd.to_numeric(
+            market["day_change_pct"],
+            errors="coerce"
+        ).fillna(0)
+
+        # ------------------------------------------------------
         # RS vs Nifty
-        # -----------------------------
+        # ------------------------------------------------------
 
         market["rs_nifty"] = (
+            market["day_change_pct"] - nifty_change
+        ).round(2)
 
-            market["day_change_pct"]
+        # ------------------------------------------------------
+        # RS vs Sector
+        # ------------------------------------------------------
 
-            -
-
-            nifty_change
-
+        market["sector_strength"] = (
+            market["sector"]
+            .map(sector_strength)
+            .fillna(0)
         )
 
-        # -----------------------------
-        # RS vs Sector
-        # -----------------------------
+        market["rs_sector"] = (
+            market["day_change_pct"]
+            - market["sector_strength"]
+        ).round(2)
 
-        rs_sector = []
-
-        for _, row in market.iterrows():
-
-            sector = row["sector"]
-
-            sector_move = sector_strength.get(sector, 0)
-
-            rs_sector.append(
-
-                row["day_change_pct"]
-
-                -
-
-                sector_move
-
-            )
-
-        market["rs_sector"] = rs_sector
-
-        # -----------------------------
-        # Normalized Score
-        # -----------------------------
+        # ------------------------------------------------------
+        # Raw RS Score
+        # ------------------------------------------------------
 
         market["rs_score"] = (
-
             market["rs_nifty"] * 0.60
-
             +
-
             market["rs_sector"] * 0.40
+        ).round(2)
 
-        )
+        # ------------------------------------------------------
+        # Normalize Score (0-100)
+        # ------------------------------------------------------
 
-        # -----------------------------
+        minimum = market["rs_score"].min()
+        maximum = market["rs_score"].max()
+
+        if minimum == maximum:
+
+            market["relative_strength_score"] = 50.0
+
+        else:
+
+            market["relative_strength_score"] = (
+                (
+                    market["rs_score"] - minimum
+                )
+                /
+                (
+                    maximum - minimum
+                )
+                * 100
+            ).round(2)
+
+        # ------------------------------------------------------
         # Rank
-        # -----------------------------
+        # ------------------------------------------------------
 
         market["rs_rank"] = (
-
-            market["rs_score"]
-
-            .rank(ascending=False, method="dense")
-
+            market["relative_strength_score"]
+            .rank(
+                ascending=False,
+                method="dense"
+            )
+            .astype(int)
         )
 
         return market
 
+    # ==========================================================
+    # Reports
+    # ==========================================================
+
     def top(self, df, count=10):
 
         return (
-
             df
-
             .sort_values(
-
-                by="rs_score",
-
+                by="relative_strength_score",
                 ascending=False
-
             )
-
             .head(count)
-
         )
 
     def bottom(self, df, count=10):
 
         return (
-
             df
-
             .sort_values(
-
-                by="rs_score"
-
+                by="relative_strength_score",
+                ascending=True
             )
-
             .head(count)
-
         )
