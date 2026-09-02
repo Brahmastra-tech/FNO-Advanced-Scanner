@@ -17,27 +17,55 @@ class SmartMoneyEngine:
 
         df = current_df.copy()
 
-        prev = previous_df[
-            [
-                "instrument_key",
-                "volume",
-                "turnover",
-                "close"
-            ]
-        ].copy()
+        # -----------------------------------
+        # Remove existing previous columns
+        # -----------------------------------
 
-        prev.columns = [
-            "instrument_key",
+        for col in [
             "prev_volume",
             "prev_turnover",
-            "prev_close"
-        ]
+            "prev_close",
+        ]:
+            if col in df.columns:
+                df.drop(columns=col, inplace=True)
 
-        df = df.merge(
-            prev,
-            on="instrument_key",
-            how="left"
-        )
+        # -----------------------------------
+        # First Scan
+        # -----------------------------------
+
+        if previous_df is None or previous_df.empty:
+
+            df["prev_volume"] = df["volume"]
+            df["prev_turnover"] = df["turnover"]
+            df["prev_close"] = df["close"]
+
+        else:
+
+            prev = previous_df[
+                [
+                    "instrument_key",
+                    "volume",
+                    "turnover",
+                    "close",
+                ]
+            ].copy()
+
+            prev.columns = [
+                "instrument_key",
+                "prev_volume",
+                "prev_turnover",
+                "prev_close",
+            ]
+
+            df = df.merge(
+                prev,
+                on="instrument_key",
+                how="left",
+            )
+
+            df["prev_volume"] = df["prev_volume"].fillna(df["volume"])
+            df["prev_turnover"] = df["prev_turnover"].fillna(df["turnover"])
+            df["prev_close"] = df["prev_close"].fillna(df["close"])
 
         # -----------------------------------
         # Price Change %
@@ -45,11 +73,9 @@ class SmartMoneyEngine:
 
         df["price_change_pct"] = (
             (
-                df["close"] -
-                df["prev_close"]
+                df["close"] - df["prev_close"]
             )
-            /
-            df["prev_close"]
+            / df["prev_close"].replace(0, np.nan)
             * 100
         ).fillna(0)
 
@@ -58,13 +84,7 @@ class SmartMoneyEngine:
         # -----------------------------------
 
         df["volume_acceleration"] = (
-
-            df["volume"]
-
-            -
-
-            df["prev_volume"]
-
+            df["volume"] - df["prev_volume"]
         ).fillna(0)
 
         # -----------------------------------
@@ -72,13 +92,7 @@ class SmartMoneyEngine:
         # -----------------------------------
 
         df["turnover_acceleration"] = (
-
-            df["turnover"]
-
-            -
-
-            df["prev_turnover"]
-
+            df["turnover"] - df["prev_turnover"]
         ).fillna(0)
 
         # -----------------------------------
@@ -86,13 +100,8 @@ class SmartMoneyEngine:
         # -----------------------------------
 
         df["average_trade_value"] = (
-
             df["turnover"]
-
-            /
-
-            df["volume"].replace(0, np.nan)
-
+            / df["volume"].replace(0, np.nan)
         ).fillna(0)
 
         # -----------------------------------
@@ -100,132 +109,71 @@ class SmartMoneyEngine:
         # -----------------------------------
 
         df["participation_score"] = (
-
             (
                 df["volume_acceleration"]
-
-                /
-
-                df["volume"].replace(0, np.nan)
-
+                / df["volume"].replace(0, np.nan)
             )
-
             * 100
-
         ).fillna(0)
 
         # -----------------------------------
-        # Accumulation
-        # High turnover
-        # Low price movement
+        # Smart Money Score
         # -----------------------------------
 
-        accumulation = []
-
-        distribution = []
-
         smart_score = []
+        accumulation = []
+        distribution = []
 
         for _, row in df.iterrows():
 
             score = 0
 
-            # Volume participation
-
             if row["volume_acceleration"] > 0:
-
                 score += 20
-
-            # Turnover participation
 
             if row["turnover_acceleration"] > 0:
-
                 score += 20
-
-            # Small move = hidden buying
 
             if abs(row["price_change_pct"]) < 1:
-
                 score += 20
-
-            # Healthy participation
 
             if row["participation_score"] > 15:
-
                 score += 20
 
-            # Expensive trades
-
             if row["average_trade_value"] > 5000:
-
                 score += 20
 
             score = min(score, 100)
 
             smart_score.append(score)
 
-            if score >= 70:
+            accumulation.append(
+                "YES" if score >= 70 else "NO"
+            )
 
-                accumulation.append("YES")
-
-            else:
-
-                accumulation.append("NO")
-
-            if (
-
-                row["turnover_acceleration"] > 0
-
-                and
-
-                row["price_change_pct"] < -0.5
-
-            ):
-
-                distribution.append("YES")
-
-            else:
-
-                distribution.append("NO")
-
-        df["accumulation"] = accumulation
-
-        df["distribution"] = distribution
+            distribution.append(
+                "YES"
+                if (
+                    row["turnover_acceleration"] > 0
+                    and row["price_change_pct"] < -0.5
+                )
+                else "NO"
+            )
 
         df["smart_money_score"] = smart_score
+        df["accumulation"] = accumulation
+        df["distribution"] = distribution
 
         return df
 
     def top_accumulation(self, df, n=20):
-
-        return (
-
-            df
-
-            .sort_values(
-
-                by="smart_money_score",
-
-                ascending=False
-
-            )
-
-            .head(n)
-
-        )
+        return df.sort_values(
+            "smart_money_score",
+            ascending=False,
+        ).head(n)
 
     def institutional_buying(self, df):
-
-        return df[
-
-            df["accumulation"] == "YES"
-
-        ]
+        return df[df["accumulation"] == "YES"]
 
     def institutional_selling(self, df):
-
-        return df[
-
-            df["distribution"] == "YES"
-
-        ]
+        return df[df["distribution"] == "YES"]
